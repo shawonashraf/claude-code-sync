@@ -47,3 +47,12 @@ def test_missing_optional_pieces_are_fine(tmp_path):
     assert "plugins-manifest.json" in ss.files
     assert "keybindings.json" not in ss.files
     assert "settings.json" not in ss.files
+
+
+def test_runtime_dotfiles_in_mirror_dirs_are_skipped(fake_claude):
+    state = fake_claude.claude_dir / "hooks" / "peon" / ".state.json"
+    state.write_text('{"volume": 5}')
+    (fake_claude.claude_dir / "hooks" / "peon" / ".sound.pid").write_text("123")
+    ss = build_sync_set(fake_claude.claude_dir)
+    assert not any(k.endswith(".state.json") or k.endswith(".sound.pid") for k in ss.files)
+    assert "hooks/peon/run.sh" in ss.files  # non-dotfiles still mirrored

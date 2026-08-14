@@ -37,7 +37,14 @@ def install_hook(settings_file: Path) -> bool:
     entries = _entries(data)
     if any(_is_ours(e) for e in entries):
         return False
-    entries.append({"hooks": [{"type": "command", "command": hook_command()}]})
+    entries.append({"hooks": [{
+        "type": "command",
+        "command": hook_command(),
+        # async + timeout: Claude Code cancels synchronous SessionEnd hooks
+        # that outlive app shutdown; a backup can take seconds when it pushes
+        "async": True,
+        "timeout": 60,
+    }]})
     settings_file.parent.mkdir(parents=True, exist_ok=True)
     settings_file.write_text(json.dumps(data, indent=2) + "\n")
     return True

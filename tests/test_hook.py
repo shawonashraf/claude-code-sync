@@ -66,3 +66,11 @@ def test_install_when_settings_missing(tmp_path):
     f = tmp_path / "settings.json"
     assert install_hook(f) is True
     assert is_hook_installed(f) is True
+
+
+def test_installed_entry_is_async_with_timeout(tmp_path):
+    f = tmp_path / "settings.json"
+    install_hook(f)
+    entry = json.loads(f.read_text())["hooks"]["SessionEnd"][0]["hooks"][0]
+    assert entry["async"] is True
+    assert entry["timeout"] == 60

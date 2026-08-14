@@ -14,7 +14,9 @@ Each `claude-sync backup` is one pass:
    silently. No commit, no timestamp churn, nothing to see.
 3. **Mirror the changes.** New and changed files are written; files you
    deleted locally are deleted from the backup too, so an uninstalled skill
-   doesn't come back from the dead on restore.
+   doesn't come back from the dead on restore. Dot-prefixed files inside
+   the mirrored directories (runtime state like a hook's `.state.json`)
+   are skipped — they're machine state, not configuration.
 4. **Commit (git mode).** One commit per changed backup:
    `claude-sync: <machine> <timestamp>`. With `auto_push` on, it's pushed
    immediately.

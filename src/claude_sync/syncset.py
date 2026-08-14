@@ -32,6 +32,10 @@ def build_sync_set(claude_dir: Path) -> SyncSet:
             continue
         for entry in sorted(root.rglob("*")):
             rel = entry.relative_to(claude_dir).as_posix()
+            # dot-prefixed files/dirs inside mirrors are runtime state
+            # (.state.json, .sound.pid), not configuration — never synced
+            if any(part.startswith(".") for part in entry.relative_to(root).parts):
+                continue
             if _is_cache_symlink(entry, claude_dir):
                 cache_symlinks.append(rel)
                 continue
