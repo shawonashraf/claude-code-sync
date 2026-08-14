@@ -60,7 +60,7 @@ def sync_lock(lock_file: Path):
             raise AlreadyRunning(f"lock {lock_file} stolen by another process")
 
         # Winner: unlink the claimed lock and try to create fresh
-        lock_file.unlink(missing_ok=True)
+        claimed.unlink(missing_ok=True)
         try:
             fd = os.open(lock_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
         except FileExistsError:

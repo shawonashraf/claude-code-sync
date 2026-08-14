@@ -27,6 +27,7 @@ def test_stale_lock_from_dead_pid_is_stolen(tmp_path):
     with sync_lock(lock):
         assert lock.exists()
     assert not lock.exists()
+    assert list(tmp_path.iterdir()) == []  # no leftover stale files
 
 
 def test_lock_released_on_exception(tmp_path):
@@ -56,6 +57,7 @@ def test_empty_old_lock_is_stolen(tmp_path):
     with sync_lock(lock):
         assert lock.exists()
     assert not lock.exists()
+    assert list(tmp_path.iterdir()) == []  # no leftover stale files
 
 
 def test_negative_pid_lock_is_stolen(tmp_path):
@@ -65,3 +67,4 @@ def test_negative_pid_lock_is_stolen(tmp_path):
     with sync_lock(lock):
         assert lock.exists()
     assert not lock.exists()
+    assert list(tmp_path.iterdir()) == []  # no leftover stale files
