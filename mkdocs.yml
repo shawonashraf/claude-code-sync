@@ -1,0 +1,59 @@
+site_name: claude-code-sync
+site_description: Back up and restore your Claude Code setup — skills, plugins, hooks, settings — with one command.
+site_url: https://shawonashraf.github.io/claude-code-sync/
+repo_url: https://github.com/shawonashraf/claude-code-sync
+repo_name: shawonashraf/claude-code-sync
+docs_dir: website
+copyright: MIT licensed. Built for people who live in the terminal.
+
+theme:
+  name: material
+  font:
+    text: IBM Plex Sans
+    code: IBM Plex Mono
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.footer
+    - navigation.top
+    - content.code.copy
+    - content.tabs.link
+    - search.suggest
+    - search.highlight
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Backup & restore: backup-restore.md
+  - Multi-machine: multi-machine.md
+  - Security & privacy: security.md
+  - Command reference: commands.md
+  - FAQ & troubleshooting: faq.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+
+extra_css:
+  - stylesheets/extra.css

@@ -1,0 +1,108 @@
+:root {
+  --ccs-amber: #f5a623;
+  --ccs-amber-deep: #b97a00;
+  --ccs-ink: #14161a;
+  --ccs-green: #3fb950;
+}
+
+/* Hero */
+.ccs-hero {
+  text-align: center;
+  padding: 2.5rem 0 1.5rem;
+}
+.ccs-hero .ccs-title {
+  font-size: 2.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 0.6rem;
+}
+.ccs-hero > p {
+  max-width: 34rem;
+  margin: 0 auto 1.2rem;
+  font-size: 0.95rem;
+}
+.ccs-hero .md-button {
+  margin: 0 0.3rem 1.6rem;
+}
+.ccs-hero .md-button--primary {
+  background-color: var(--ccs-amber);
+  border-color: var(--ccs-amber);
+  color: var(--ccs-ink);
+}
+.ccs-hero .md-button--primary:hover {
+  background-color: var(--ccs-amber-deep);
+  border-color: var(--ccs-amber-deep);
+  color: #fff;
+}
+
+/* Terminal window — the signature element */
+.ccs-terminal {
+  max-width: 44rem;
+  margin: 0 auto;
+  text-align: left;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--ccs-ink);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+.ccs-terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.8rem;
+  background: #1f2229;
+}
+.ccs-terminal-bar span {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: #3a3f4b;
+}
+.ccs-terminal-bar em {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 0.62rem;
+  color: #7a8091;
+  font-family: var(--md-code-font-family);
+}
+.ccs-terminal pre {
+  margin: 0;
+  padding: 1rem 1.2rem 1.2rem;
+  background: transparent;
+  font-size: 0.68rem;
+  line-height: 1.55;
+  overflow-x: auto;
+}
+.ccs-terminal pre code {
+  background: transparent;
+  color: #c8ccd6;
+}
+.ccs-terminal pre code b {
+  color: var(--ccs-amber);
+  font-weight: 600;
+}
+
+/* Synced / never-synced columns */
+.ccs-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.2rem 0;
+}
+.ccs-col {
+  border-radius: 0.4rem;
+  padding: 0.2rem 1.2rem 0.8rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+}
+.ccs-col-yes { border-top: 3px solid var(--ccs-green); }
+.ccs-col-no { border-top: 3px solid var(--ccs-amber); }
+.ccs-col ul { list-style: none; margin-left: 0; }
+.ccs-col li { margin-left: 0; }
+.ccs-col-yes li::before { content: "✓  "; color: var(--ccs-green); font-weight: 700; }
+.ccs-col-no li::before { content: "✕  "; color: var(--ccs-amber); font-weight: 700; }
+
+@media (max-width: 44rem) {
+  .ccs-columns { grid-template-columns: 1fr; }
+  .ccs-hero .ccs-title { font-size: 1.9rem; }
+}
