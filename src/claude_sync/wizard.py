@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Protocol
 
 from claude_sync import gitutils
-from claude_sync.backup import run_backup
+from claude_sync.backup import Resolver, _bad_destination, run_backup
 from claude_sync.config import SyncConfig, save_config
 from claude_sync.hook import install_hook
 from claude_sync.paths import Paths
@@ -20,12 +20,24 @@ class Prompts(Protocol):
     def info(self, message: str) -> None: ...
 
 
-def run_init(paths: Paths, destination: str | None, yes: bool, prompts: Prompts) -> int:
+def run_init(
+    paths: Paths,
+    destination: str | None,
+    yes: bool,
+    prompts: Prompts,
+    resolver: Resolver | None = None,
+) -> int:
     default_dest = str(paths.home / "claude-backup")
     dest_input = destination or (
         default_dest if yes else prompts.ask_destination(default_dest)
     )
     dest = Path(dest_input).expanduser()
+    if _bad_destination(dest, paths.claude_dir):
+        prompts.info(
+            "Error: the backup destination cannot be inside ~/.claude "
+            "(or contain it). Choose a different directory."
+        )
+        return 1
     dest.mkdir(parents=True, exist_ok=True)
 
     if gitutils.is_git_repo(dest):
@@ -51,7 +63,7 @@ def run_init(paths: Paths, destination: str | None, yes: bool, prompts: Prompts)
     ):
         install_hook(paths.settings_file)
 
-    result = run_backup(paths)
+    result = run_backup(paths, resolver=resolver)
     prompts.info(f"First backup: {result.status} → {dest}")
     if result.redacted:
         prompts.info(

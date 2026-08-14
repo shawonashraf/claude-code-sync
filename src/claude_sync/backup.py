@@ -20,6 +20,19 @@ class BackupResult:
     status: str
     committed: bool = False
     redacted: list[str] = field(default_factory=list)
+    git_mode: bool = False
+    push_failed: bool = False
+
+
+def _bad_destination(dest: Path, claude_dir: Path) -> bool:
+    """True when dest is inside claude_dir, equal to it, or contains it."""
+    dest_r = dest.resolve()
+    claude_r = claude_dir.resolve()
+    return (
+        dest_r == claude_r
+        or dest_r.is_relative_to(claude_r)
+        or claude_r.is_relative_to(dest_r)
+    )
 
 
 def run_backup(
@@ -31,6 +44,8 @@ def run_backup(
     if cfg is None:
         return BackupResult(status="not-configured")
     dest = Path(cfg.destination)
+    if _bad_destination(dest, paths.claude_dir):
+        return BackupResult(status="bad-destination")
     machine = machine or platform.node()
 
     with sync_lock(paths.lock_file):
@@ -72,16 +87,23 @@ def run_backup(
         }, indent=2) + "\n")
 
         committed = False
+        git_mode = False
+        push_failed = False
         if cfg.git_mode:
+            git_mode = True
             committed = gitutils.commit_all(
                 dest, f"claude-sync: {machine} {timestamp}"
             )
             if cfg.auto_push and not gitutils.push(dest):
-                pass  # commit is safe locally; push will be retried on next backup
+                push_failed = True  # commit is safe locally; push will be retried on next backup
 
         cfg.last_backup = timestamp
         cfg.conflict_pending = False
         save_config(paths, cfg)
         return BackupResult(
-            status="ok", committed=committed, redacted=sync_set.redacted_env
+            status="ok",
+            committed=committed,
+            redacted=sync_set.redacted_env,
+            git_mode=git_mode,
+            push_failed=push_failed,
         )

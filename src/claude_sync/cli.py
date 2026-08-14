@@ -74,12 +74,23 @@ def _cmd_backup(paths: Paths, args) -> int:
         print("Kept the repo's version. Run `claude-sync restore` to adopt "
               "it on this machine.")
         return 0
+    if result.status == "bad-destination":
+        print("claude-sync: destination must not be inside ~/.claude "
+              "(or contain it)", file=sys.stderr)
+        return 1
     if not args.quiet:
         if result.status == "ok":
             print(f"Backed up to {gather_status(paths).destination}"
                   + (" (committed)" if result.committed else ""))
         if args.show_redactions and result.redacted:
             print("Redacted env vars: " + ", ".join(result.redacted))
+    if result.status == "ok":
+        if result.git_mode and not result.committed:
+            print("claude-sync: warning: backup written but git commit failed",
+                  file=sys.stderr)
+        if result.push_failed:
+            print("claude-sync: warning: push failed; the commit is safe "
+                  "locally and will be retried next backup", file=sys.stderr)
     return 0
 
 
@@ -133,7 +144,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "init":
             prompts = InteractivePrompts() if not args.yes else _SilentPrompts()
-            return run_init(paths, args.destination, args.yes, prompts)
+            resolver = None if args.yes else interactive_resolver
+            return run_init(paths, args.destination, args.yes, prompts,
+                            resolver=resolver)
         if args.command == "backup":
             return _cmd_backup(paths, args)
         if args.command == "restore":
@@ -159,6 +172,9 @@ def main(argv: list[str] | None = None) -> int:
     except json.JSONDecodeError as exc:
         print(f"claude-sync: invalid JSON in a config file: {exc}",
               file=sys.stderr)
+        return 1
+    except OSError as exc:
+        print(f"claude-sync: {exc}", file=sys.stderr)
         return 1
 
 

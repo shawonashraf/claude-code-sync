@@ -98,4 +98,16 @@ def test_failed_auto_push_does_not_fail_backup(fake_claude, tmp_path):
     save_config(fake_claude, cfg)
     result = run_backup(fake_claude)
     assert result.status == "ok" and result.committed
+    assert result.push_failed is True
     assert load_config(fake_claude).last_backup is not None
+
+
+def test_backup_refuses_destination_inside_claude_dir(fake_claude):
+    settings_before = fake_claude.settings_file.read_text()
+    save_config(
+        fake_claude,
+        SyncConfig(destination=str(fake_claude.claude_dir / "backup")),
+    )
+    result = run_backup(fake_claude)
+    assert result.status == "bad-destination"
+    assert fake_claude.settings_file.read_text() == settings_before

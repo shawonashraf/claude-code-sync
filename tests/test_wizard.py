@@ -54,3 +54,23 @@ def test_init_existing_git_repo_warns_about_divergence(fake_claude, tmp_path):
     cfg = load_config(fake_claude)
     assert cfg.git_mode is True
     assert any("diverge" in msg for msg in prompts.infos)
+
+
+def test_init_refuses_claude_dir_destination(fake_claude):
+    settings_before = fake_claude.settings_file.read_text()
+    code = run_init(
+        fake_claude, str(fake_claude.claude_dir), yes=True, prompts=ScriptedPrompts()
+    )
+    assert code == 1
+    assert load_config(fake_claude) is None
+    assert fake_claude.settings_file.read_text() == settings_before
+
+
+def test_init_with_resolver_resolves_conflict(fake_claude, diverged_clones):
+    _, clone2 = diverged_clones
+    code = run_init(
+        fake_claude, str(clone2), yes=False, prompts=ScriptedPrompts(),
+        resolver=lambda: "local",
+    )
+    assert code == 0
+    assert (clone2 / "skills" / "my-skill" / "SKILL.md").exists()
