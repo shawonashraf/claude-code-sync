@@ -1,5 +1,6 @@
 import json
 
+from claude_sync import gitutils
 from claude_sync.backup import run_backup
 from claude_sync.config import SyncConfig, load_config, save_config
 from tests.conftest import git
@@ -75,3 +76,26 @@ def test_conflict_resolver_keep_repo_skips_backup(fake_claude, diverged_clones):
     assert result.status == "kept-repo"
     assert (clone2 / "file.txt").read_text() == "from clone1"
     assert not (clone2 / "skills").exists()
+
+
+def test_conflict_resolver_cancel_leaves_repo_untouched(fake_claude, diverged_clones):
+    _, clone2 = diverged_clones
+    _configure(fake_claude, clone2, git_mode=True)
+    result = run_backup(fake_claude, resolver=lambda: None)
+    assert result.status == "conflict-pending"
+    assert load_config(fake_claude).conflict_pending is True
+    assert gitutils.is_diverged(clone2) is True
+    assert not (clone2 / "skills").exists()
+
+
+def test_failed_auto_push_does_not_fail_backup(fake_claude, tmp_path):
+    from tests.conftest import make_repo
+    dest = make_repo(tmp_path / "dest")
+    # No remote configured, so push will fail
+    _configure(fake_claude, dest, git_mode=True)
+    cfg = load_config(fake_claude)
+    cfg.auto_push = True
+    save_config(fake_claude, cfg)
+    result = run_backup(fake_claude)
+    assert result.status == "ok" and result.committed
+    assert load_config(fake_claude).last_backup is not None

@@ -40,6 +40,10 @@ def run_backup(
                 save_config(paths, cfg)
                 return BackupResult(status="conflict-pending")
             choice = resolver()
+            if choice is None:
+                cfg.conflict_pending = True
+                save_config(paths, cfg)
+                return BackupResult(status="conflict-pending")
             gitutils.abort_merge(dest)
             if choice == "repo":
                 gitutils.merge_keep_repo(dest)
@@ -73,7 +77,7 @@ def run_backup(
                 dest, f"claude-sync: {machine} {timestamp}"
             )
             if cfg.auto_push and not gitutils.push(dest):
-                pass  # push failure warns at CLI level via status; commit is safe locally
+                pass  # commit is safe locally; push will be retried on next backup
 
         cfg.last_backup = timestamp
         cfg.conflict_pending = False
