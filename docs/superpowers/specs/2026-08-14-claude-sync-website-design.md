@@ -25,8 +25,8 @@ first so every command the site teaches (`uvx claude-sync …`) works verbatim.
 
 - Add `LICENSE` (MIT, Shawon Ashraf).
 - `pyproject.toml` additions: `license = "MIT"`, `authors`, `[project.urls]`
-  (Repository → https://github.com/shawonashraf/claude-sync, Documentation →
-  https://shawonashraf.github.io/claude-sync/), classifiers (Python 3.13,
+  (Repository → https://github.com/shawonashraf/claude-code-sync, Documentation →
+  https://shawonashraf.github.io/claude-code-sync/), classifiers (Python 3.13,
   Environment :: Console, Topic :: Utilities, License :: OSI Approved :: MIT License).
 - `uv build`, then `uv publish --token $PYPI_TOKEN`.
 - Verify from PyPI with a clean `uvx claude-sync --help`.
@@ -62,7 +62,7 @@ reader accomplishes; commands are copy-paste blocks with expected output.
   block) via Markdown + ~30 lines of `extra.css`. No HTML template overrides.
 - Features: `navigation.sections`, `navigation.footer`, `content.code.copy`,
   `search.suggest`, admonitions, tabbed code blocks.
-- `site_url: https://shawonashraf.github.io/claude-sync/`; repo link in header.
+- `site_url: https://shawonashraf.github.io/claude-code-sync/`; repo link in header.
 - No extra build plugins beyond `mkdocs-material`.
 
 ## Part 4: Deploy workflow and repo wiring

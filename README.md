@@ -1,18 +1,23 @@
-# claude-sync
+# claude-code-sync
 
 Back up and restore your Claude Code configuration — skills, hooks, agents,
 keybindings, global CLAUDE.md, a redacted settings.json, and a plugin
 manifest. Never your history, sessions, or projects.
 
+Docs: https://shawonashraf.github.io/claude-code-sync/
+
 ## Quick start
 
 Set up backups on the machine you already use:
 
-    uvx claude-sync init
+    uvx claude-code-sync init
 
 Reproduce your setup on a new machine (one command):
 
-    uvx claude-sync restore https://github.com/you/claude-backup.git
+    uvx claude-code-sync restore https://github.com/you/claude-backup.git
+
+The installed command is `claude-sync` (with `claude-code-sync` as an alias
+— the PyPI name).
 
 ## Commands
 

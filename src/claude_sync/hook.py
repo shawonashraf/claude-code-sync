@@ -7,7 +7,8 @@ HOOK_SUBSTRING = "claude-sync backup --quiet"
 
 def hook_command() -> str:
     exe = shutil.which("claude-sync")
-    return f"{exe} backup --quiet" if exe else f"uvx {HOOK_SUBSTRING}"
+    # PyPI package is claude-code-sync; --from keeps the marker substring intact
+    return f"{exe} backup --quiet" if exe else f"uvx --from claude-code-sync {HOOK_SUBSTRING}"
 
 
 def _load(settings_file: Path) -> dict:

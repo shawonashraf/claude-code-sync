@@ -1,12 +1,25 @@
 [project]
-name = "claude-sync"
+name = "claude-code-sync"
 version = "0.1.0"
 description = "Back up and restore your Claude Code configuration (skills, plugins, hooks, settings)"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Shawon Ashraf" }]
 requires-python = ">=3.13"
 dependencies = ["rich>=13", "questionary>=2"]
+classifiers = [
+    "Environment :: Console",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Utilities",
+]
+
+[project.urls]
+Repository = "https://github.com/shawonashraf/claude-code-sync"
+Documentation = "https://shawonashraf.github.io/claude-code-sync/"
 
 [project.scripts]
+claude-code-sync = "claude_sync.cli:main"
 claude-sync = "claude_sync.cli:main"
 
 [build-system]
@@ -18,6 +31,7 @@ packages = ["src/claude_sync"]
 
 [dependency-groups]
 dev = ["pytest>=8"]
+docs = ["mkdocs-material>=9"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
