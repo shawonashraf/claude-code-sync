@@ -1,7 +1,23 @@
 [project]
 name = "claude-sync"
 version = "0.1.0"
-description = "Add your description here"
+description = "Back up and restore your Claude Code configuration (skills, plugins, hooks, settings)"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = ["rich>=13", "questionary>=2"]
+
+[project.scripts]
+claude-sync = "claude_sync.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/claude_sync"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
