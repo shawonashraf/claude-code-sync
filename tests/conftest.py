@@ -1,4 +1,5 @@
 import json
+import subprocess
 
 import pytest
 
@@ -61,3 +62,51 @@ def fake_claude(tmp_path) -> Paths:
     (cd / "projects").mkdir()
     (cd / "projects" / "p.json").write_text("{}")
     return paths
+
+
+def git(cwd, *args):
+    return subprocess.run(
+        ["git", "-C", str(cwd), *args],
+        capture_output=True, text=True, check=True,
+    )
+
+
+def make_repo(path):
+    path.mkdir(parents=True, exist_ok=True)
+    git(path, "init", "-b", "main")
+    git(path, "config", "user.email", "test@test")
+    git(path, "config", "user.name", "test")
+    return path
+
+
+@pytest.fixture
+def diverged_clones(tmp_path):
+    """origin + two clones that have diverged (clone2 knows, via fetch done here)."""
+    origin = tmp_path / "origin.git"
+    origin.mkdir()
+    subprocess.run(["git", "init", "--bare", "-b", "main", str(origin)],
+                   capture_output=True, check=True)
+    seed = make_repo(tmp_path / "seed")
+    (seed / "base.txt").write_text("base")
+    git(seed, "add", "base.txt")
+    git(seed, "commit", "-m", "base")
+    git(seed, "remote", "add", "origin", str(origin))
+    git(seed, "push", "-u", "origin", "main")
+
+    clone1, clone2 = tmp_path / "clone1", tmp_path / "clone2"
+    for c in (clone1, clone2):
+        subprocess.run(["git", "clone", str(origin), str(c)],
+                       capture_output=True, check=True)
+        git(c, "config", "user.email", "test@test")
+        git(c, "config", "user.name", "test")
+
+    (clone1 / "file.txt").write_text("from clone1")
+    git(clone1, "add", "file.txt")
+    git(clone1, "commit", "-m", "clone1 change")
+    git(clone1, "push")
+
+    (clone2 / "file.txt").write_text("from clone2")
+    git(clone2, "add", "file.txt")
+    git(clone2, "commit", "-m", "clone2 change")
+    git(clone2, "fetch")  # clone2 now knows it has diverged
+    return clone1, clone2
