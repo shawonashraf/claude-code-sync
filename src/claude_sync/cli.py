@@ -150,7 +150,10 @@ def main(argv: list[str] | None = None) -> int:
                 hook.install_hook(paths.settings_file)
             else:
                 hook.uninstall_hook(paths.settings_file)
-            run_backup(paths)  # destination must reflect the settings change
+            try:
+                run_backup(paths)  # destination must reflect the settings change
+            except AlreadyRunning:
+                pass  # another run is syncing; it will pick up the hook change
             return 0
         return 2
     except json.JSONDecodeError as exc:

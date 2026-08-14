@@ -1,4 +1,5 @@
 import json
+import os
 
 from claude_sync.cli import main
 from claude_sync.config import load_config
@@ -73,3 +74,19 @@ def test_malformed_settings_json_yields_actionable_error(fake_claude, tmp_path, 
     assert main(["backup"]) == 1
     err = capsys.readouterr().err
     assert "invalid JSON" in err
+
+
+def test_hook_install_tolerates_held_lock(fake_claude, tmp_path, monkeypatch):
+    _env_home(monkeypatch, fake_claude.home)
+    dest = tmp_path / "dest"
+    main(["init", str(dest), "--yes"])
+    # Write current process pid to lock file to trigger AlreadyRunning
+    lock_file = fake_claude.home / ".claude-sync.lock"
+    lock_file.write_text(str(os.getpid()))
+    # Should tolerate the held lock and return 0
+    assert main(["hook", "uninstall"]) == 0
+    # Verify hook was actually removed from settings
+    settings = json.loads(fake_claude.settings_file.read_text())
+    assert settings["hooks"]["SessionEnd"] == []
+    # Clean up lock file
+    lock_file.unlink()
