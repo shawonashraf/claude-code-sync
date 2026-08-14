@@ -91,3 +91,14 @@ def test_restore_missing_source_raises(tmp_path):
         run_restore(paths, str(tmp_path / "nope"))
     with pytest.raises(RestoreError):
         run_restore(paths, None)  # no source and not configured
+
+
+def test_restore_bad_url_raises_restore_error(tmp_path):
+    paths = Paths(home=tmp_path / "home2")
+    with pytest.raises(RestoreError) as excinfo:
+        run_restore(
+            paths,
+            "file:///nonexistent/claude-sync-test-repo.git",
+            to=tmp_path / "clone-target",
+        )
+    assert "could not clone" in str(excinfo.value)

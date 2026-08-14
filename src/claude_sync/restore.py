@@ -26,7 +26,7 @@ class RestoreResult:
 
 
 def _is_url(source: str) -> bool:
-    return source.startswith(("http://", "https://", "git@", "ssh://"))
+    return source.startswith(("http://", "https://", "git@", "ssh://", "file://"))
 
 
 def _backup_files(src: Path):
@@ -57,7 +57,11 @@ def run_restore(
         src = Path(cfg.destination)
     elif _is_url(source):
         src = (to or paths.home / "claude-backup").expanduser()
-        gitutils.clone(source, src)
+        try:
+            gitutils.clone(source, src)
+        except subprocess.CalledProcessError as exc:
+            detail = (exc.stderr or "").strip().splitlines()[-1] if (exc.stderr or "").strip() else "git clone failed"
+            raise RestoreError(f"could not clone {source}: {detail}") from exc
     else:
         src = Path(source).expanduser()
     if not (src / "plugins-manifest.json").is_file():
