@@ -34,9 +34,9 @@ The installed command is `claude-sync` (with `claude-code-sync` as an alias
 
 Env vars in `settings.json` whose names look sensitive (`*KEY*`, `*TOKEN*`,
 `*SECRET*`, `*PASSWORD*`, `*CREDENTIAL*`) or whose values look like
-credentials are replaced with `<redacted-by-claude-sync>` before anything
-leaves your machine. `claude-sync status` lists what you need to re-supply
-after a restore.
+credentials are emptied (`""` — never a placeholder string, which Claude
+Code would treat as a real credential) before anything leaves your machine.
+`claude-sync status` lists what you need to re-supply after a restore.
 
 ## Multi-machine use
 

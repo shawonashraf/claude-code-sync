@@ -30,16 +30,18 @@ path that touches those files at all.
 - URLs with embedded passwords — `postgres://user:SECRET@host/db` is
   caught; `https://example.com/path` passes through
 
-A matching value is replaced with the literal placeholder:
+A matching value is emptied:
 
 ```json
-{ "env": { "ANTHROPIC_AUTH_TOKEN": "<redacted-by-claude-sync>" } }
+{ "env": { "ANTHROPIC_AUTH_TOKEN": "" } }
 ```
 
-The placeholder is kept rather than dropped on purpose: after a restore,
-`claude-sync status` reads the placeholders back and prints a checklist of
-exactly which env vars you need to re-supply. Redaction happens in memory —
-your local `settings.json` is never modified.
+The key is kept rather than dropped on purpose: after a restore,
+`claude-sync status` reads the empty values back and prints a checklist of
+exactly which env vars you need to re-supply. The value is emptied rather
+than filled with a placeholder because Claude Code treats a non-empty
+`ANTHROPIC_AUTH_TOKEN` as a real credential and fails to authenticate.
+Redaction happens in memory — your local `settings.json` is never modified.
 
 Want to see the filter's decisions? `claude-sync backup --show-redactions`
 lists every redacted name.

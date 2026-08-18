@@ -1,7 +1,9 @@
 import copy
 import re
 
-REDACTED = "<redacted-by-claude-sync>"
+# empty, not a placeholder string: Claude Code chokes on a non-empty
+# ANTHROPIC_AUTH_TOKEN that is not a real credential
+REDACTED = ""
 
 _SENSITIVE_NAME = re.compile(r"key|token|secret|password|credential", re.IGNORECASE)
 _SECRET_PREFIX = re.compile(r"^(sk-|ghp_|gho_|github_pat_|glpat-|xox[a-z]-|AKIA)")
