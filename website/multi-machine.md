@@ -43,11 +43,14 @@ Either resolution creates a proper merge commit, so the version you didn't
 pick remains one `git log` away. Peace of mind is the point: choosing wrong
 costs you a `git checkout`, not your setup.
 
-## auto_push
+## Auto-push
 
-With `"auto_push": true` in `~/.claude-sync.json`, every backup commit is
-pushed immediately — which keeps machines convergent, because each one sees
+When auto-push is on, every backup commit is pushed immediately — which keeps machines convergent, because each one sees
 the others' backups sooner. Push failures never fail a backup; you get a
 one-line warning and the push retries next time.
+
+`init` and `restore` turn auto-push on whenever the backup repo has a
+remote. `claude-sync status` shows the current state and
+`claude-sync config --auto-push` / `--no-auto-push` changes it.
 
 Next: [exactly what leaves your machine →](security.md)

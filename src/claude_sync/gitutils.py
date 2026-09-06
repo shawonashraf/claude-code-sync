@@ -53,6 +53,10 @@ def commit_all(dest: Path, message: str) -> bool:
     return p.returncode == 0
 
 
+def has_remote(dest: Path) -> bool:
+    return bool(_git(dest, "remote").stdout.strip())
+
+
 def push(dest: Path) -> bool:
     return _git(dest, "push").returncode == 0
 

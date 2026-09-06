@@ -46,6 +46,7 @@ def run_restore(
     source: str | None,
     to: Path | None = None,
     run=subprocess.run,
+    auto_push: bool | None = None,
 ) -> RestoreResult:
     if source is None:
         cfg = load_config(paths)
@@ -105,7 +106,10 @@ def run_restore(
         env = json.loads(settings_file.read_text()).get("env", {})
         result.redacted_env = sorted(k for k, v in env.items() if v == REDACTED)
 
+    git_mode = gitutils.is_git_repo(src)
+    if auto_push is None:
+        auto_push = git_mode and gitutils.has_remote(src)
     save_config(paths, SyncConfig(
-        destination=str(src), git_mode=gitutils.is_git_repo(src)
+        destination=str(src), git_mode=git_mode, auto_push=auto_push
     ))
     return result

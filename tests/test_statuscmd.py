@@ -35,3 +35,18 @@ def test_status_detects_drift_and_hook(fake_claude, tmp_path):
     assert info.hook_installed is True
     text = render_status(info)
     assert "MY_API_KEY" in text
+
+
+def test_status_shows_auto_push_for_git_destinations(fake_claude, tmp_path):
+    save_config(fake_claude, SyncConfig(destination=str(tmp_path / "d"), git_mode=True, auto_push=True))
+    (tmp_path / "d").mkdir()
+    assert "Auto-push:        on" in render_status(gather_status(fake_claude))
+    save_config(fake_claude, SyncConfig(destination=str(tmp_path / "d"), git_mode=False))
+    assert "Auto-push" not in render_status(gather_status(fake_claude))
+
+
+def test_status_is_clean_after_backing_up_executable_hook(fake_claude, tmp_path):
+    (fake_claude.claude_dir / "hooks" / "peon" / "run.sh").chmod(0o755)
+    save_config(fake_claude, SyncConfig(destination=str(tmp_path / "d")))
+    run_backup(fake_claude)
+    assert gather_status(fake_claude).dirty is False

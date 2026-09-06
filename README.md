@@ -28,6 +28,7 @@ The installed command is `claude-sync` (with `claude-code-sync` as an alias
 | `claude-sync restore [src]` | Restore from a directory or git URL; reinstalls plugins |
 | `claude-sync status` | Destination, last backup, drift, pending conflicts |
 | `claude-sync resolve` | Choose a version when two machines diverged |
+| `claude-sync config [--auto-push\|--no-auto-push]` | Show settings; toggle pushing after each backup |
 | `claude-sync hook install\|uninstall` | Manage the SessionEnd auto-backup hook |
 
 ## What about secrets?
@@ -44,3 +45,7 @@ Backups from several machines to one git repo can diverge. claude-sync never
 merges on its own: it detects divergence, skips the automatic backup, and
 `claude-sync resolve` lets you pick which version to keep. The losing
 version stays in git history.
+
+When the backup repo has a remote, `init` and `restore` turn on auto-push
+so every backup commit is pushed right away. Change it any time with
+`claude-sync config --auto-push` or `--no-auto-push`.

@@ -122,3 +122,25 @@ def test_hook_install_tolerates_held_lock(fake_claude, tmp_path, monkeypatch):
     assert settings["hooks"]["SessionEnd"] == []
     # Clean up lock file
     lock_file.unlink()
+
+
+def test_config_toggles_auto_push(fake_claude, tmp_path, monkeypatch, capsys):
+    _env_home(monkeypatch, fake_claude.home)
+    main(["init", str(make_repo(tmp_path / "dest")), "--yes"])
+    assert main(["config", "--auto-push"]) == 0
+    assert load_config(fake_claude).auto_push is True
+    assert "auto_push:   on" in capsys.readouterr().out
+    assert main(["config", "--no-auto-push"]) == 0
+    assert load_config(fake_claude).auto_push is False
+    assert main(["config"]) == 0
+    assert "auto_push:   off" in capsys.readouterr().out
+
+
+def test_config_refuses_auto_push_on_plain_folder(fake_claude, tmp_path, monkeypatch, capsys):
+    _env_home(monkeypatch, fake_claude.home)
+    main(["init", str(tmp_path / "dest"), "--yes"])
+    cfg = load_config(fake_claude)
+    cfg.git_mode = False
+    save_config(fake_claude, cfg)
+    assert main(["config", "--auto-push"]) == 1
+    assert "git destination" in capsys.readouterr().err

@@ -74,3 +74,29 @@ def test_init_with_resolver_resolves_conflict(fake_claude, diverged_clones):
     )
     assert code == 0
     assert (clone2 / "skills" / "my-skill" / "SKILL.md").exists()
+
+
+def test_init_without_remote_leaves_auto_push_off(fake_claude, tmp_path):
+    run_init(fake_claude, str(tmp_path / "backup"), yes=True, prompts=ScriptedPrompts())
+    assert load_config(fake_claude).auto_push is False
+
+
+def test_init_with_remote_defaults_auto_push_on(fake_claude, diverged_clones):
+    clone1, _ = diverged_clones
+    prompts = ScriptedPrompts(destination=str(clone1))
+    run_init(fake_claude, None, yes=False, prompts=prompts)
+    assert load_config(fake_claude).auto_push is True
+
+
+def test_init_with_remote_can_decline_auto_push(fake_claude, diverged_clones):
+    clone1, _ = diverged_clones
+    prompts = ScriptedPrompts(destination=str(clone1), answers={"push": False})
+    run_init(fake_claude, None, yes=False, prompts=prompts)
+    assert load_config(fake_claude).auto_push is False
+
+
+def test_init_explicit_flag_overrides_remote_default(fake_claude, diverged_clones):
+    clone1, _ = diverged_clones
+    run_init(fake_claude, str(clone1), yes=True, prompts=ScriptedPrompts(),
+             auto_push=False)
+    assert load_config(fake_claude).auto_push is False

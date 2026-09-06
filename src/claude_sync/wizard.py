@@ -20,12 +20,29 @@ class Prompts(Protocol):
     def info(self, message: str) -> None: ...
 
 
+def _choose_auto_push(
+    dest: Path, git_mode: bool, yes: bool, prompts: Prompts,
+    explicit: bool | None,
+) -> bool:
+    """Explicit flag wins; otherwise push only when a remote exists."""
+    if not git_mode:
+        return False
+    if explicit is not None:
+        return explicit
+    if not gitutils.has_remote(dest):
+        return False
+    return yes or prompts.confirm(
+        "Push every backup commit to the remote automatically?", default=True
+    )
+
+
 def run_init(
     paths: Paths,
     destination: str | None,
     yes: bool,
     prompts: Prompts,
     resolver: Resolver | None = None,
+    auto_push: bool | None = None,
 ) -> int:
     default_dest = str(paths.home / "claude-backup")
     dest_input = destination or (
@@ -55,7 +72,10 @@ def run_init(
     if git_mode:
         prompts.info(DIVERGENCE_NOTE)
 
-    save_config(paths, SyncConfig(destination=str(dest), git_mode=git_mode))
+    save_config(paths, SyncConfig(
+        destination=str(dest), git_mode=git_mode,
+        auto_push=_choose_auto_push(dest, git_mode, yes, prompts, auto_push),
+    ))
 
     if yes or prompts.confirm(
         "Install the Claude Code session-end hook so backups run automatically?",

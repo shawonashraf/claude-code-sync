@@ -13,6 +13,7 @@ class StatusInfo:
     configured: bool
     destination: str | None = None
     git_mode: bool = False
+    auto_push: bool = False
     last_backup: str | None = None
     conflict_pending: bool = False
     hook_installed: bool = False
@@ -25,11 +26,13 @@ def gather_status(paths: Paths) -> StatusInfo:
     if cfg is None:
         return StatusInfo(configured=False)
     sync_set = build_sync_set(paths.claude_dir)
-    changes = diff_dest(sync_set.files, Path(cfg.destination))
+    changes = diff_dest(sync_set.files, Path(cfg.destination),
+                        frozenset(sync_set.executables))
     return StatusInfo(
         configured=True,
         destination=cfg.destination,
         git_mode=cfg.git_mode,
+        auto_push=cfg.auto_push,
         last_backup=cfg.last_backup,
         conflict_pending=cfg.conflict_pending,
         hook_installed=is_hook_installed(paths.settings_file),
@@ -43,6 +46,7 @@ def render_status(info: StatusInfo) -> str:
         return "claude-sync is not configured. Run: claude-sync init"
     lines = [
         f"Destination:      {info.destination} ({'git' if info.git_mode else 'plain folder'})",
+        *([f"Auto-push:        {'on' if info.auto_push else 'off'}"] if info.git_mode else []),
         f"Last backup:      {info.last_backup or 'never'}",
         f"Local changes:    {'yes — run claude-sync backup' if info.dirty else 'none (in sync)'}",
         f"Session-end hook: {'installed' if info.hook_installed else 'not installed'}",

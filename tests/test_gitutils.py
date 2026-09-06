@@ -65,3 +65,9 @@ def test_clone(tmp_path, diverged_clones):
     origin_url = git(clone1, "remote", "get-url", "origin").stdout.strip()
     gitutils.clone(origin_url, target)
     assert (target / "base.txt").exists()
+
+
+def test_has_remote(tmp_path, diverged_clones):
+    clone1, _ = diverged_clones
+    assert gitutils.has_remote(clone1)
+    assert not gitutils.has_remote(make_repo(tmp_path / "lonely"))

@@ -78,12 +78,13 @@ Claude Code session — the backup repo gets a new commit by itself.
 
 ## Optional: push backups off this machine
 
-If your destination is a git repo with a remote, enable auto-push so every
-backup commit is pushed immediately:
+If your destination already has a remote when you run `init` (or you
+`restore` from a git URL), auto-push is on by default: every backup commit
+is pushed immediately. Adding a remote later takes two steps:
 
 1. Give the repo a remote and an upstream once:
    `git -C ~/claude-backup push -u origin main`
-2. Set `"auto_push": true` in `~/.claude-sync.json`.
+2. Run `claude-sync config --auto-push`.
 
 A failed push never fails a backup — the commit stays safe locally and a
 warning tells you it will retry on the next backup.

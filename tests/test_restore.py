@@ -102,3 +102,18 @@ def test_restore_bad_url_raises_restore_error(tmp_path):
             to=tmp_path / "clone-target",
         )
     assert "could not clone" in str(excinfo.value)
+
+
+def test_restore_from_repo_with_remote_enables_auto_push(fake_claude, diverged_clones):
+    clone1, _ = diverged_clones
+    (clone1 / "plugins-manifest.json").write_text('{"schema": 1, "plugins": []}')
+    run_restore(fake_claude, str(clone1), run=_fake_run_factory([]))
+    cfg = load_config(fake_claude)
+    assert cfg.git_mode is True and cfg.auto_push is True
+
+
+def test_restore_flag_can_disable_auto_push(fake_claude, diverged_clones):
+    clone1, _ = diverged_clones
+    (clone1 / "plugins-manifest.json").write_text('{"schema": 1, "plugins": []}')
+    run_restore(fake_claude, str(clone1), run=_fake_run_factory([]), auto_push=False)
+    assert load_config(fake_claude).auto_push is False

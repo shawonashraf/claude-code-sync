@@ -6,6 +6,7 @@ from pathlib import Path
 
 from claude_sync import hook
 from claude_sync.backup import run_backup
+from claude_sync.config import load_config, save_config
 from claude_sync.lock import AlreadyRunning
 from claude_sync.paths import Paths
 from claude_sync.restore import RestoreError, run_restore
@@ -97,7 +98,8 @@ def _cmd_backup(paths: Paths, args) -> int:
 def _cmd_restore(paths: Paths, args) -> int:
     try:
         result = run_restore(paths, args.source,
-                             to=Path(args.to) if args.to else None)
+                             to=Path(args.to) if args.to else None,
+                             auto_push=args.auto_push)
     except RestoreError as exc:
         print(f"claude-sync: {exc}", file=sys.stderr)
         return 1
@@ -112,6 +114,32 @@ def _cmd_restore(paths: Paths, args) -> int:
     return 0
 
 
+def _cmd_config(paths: Paths, args) -> int:
+    cfg = load_config(paths)
+    if cfg is None:
+        print("claude-sync is not configured. Run: claude-sync init",
+              file=sys.stderr)
+        return 1
+    if args.auto_push is not None:
+        if args.auto_push and not cfg.git_mode:
+            print("claude-sync: auto-push needs a git destination",
+                  file=sys.stderr)
+            return 1
+        cfg.auto_push = args.auto_push
+        save_config(paths, cfg)
+    print(f"destination: {cfg.destination}")
+    print(f"git_mode:    {'on' if cfg.git_mode else 'off'}")
+    print(f"auto_push:   {'on' if cfg.auto_push else 'off'}")
+    return 0
+
+
+def _add_auto_push_flag(parser) -> None:
+    parser.add_argument(
+        "--auto-push", action=argparse.BooleanOptionalAction, default=None,
+        help="push each backup commit (default: on when the repo has a remote)",
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="claude-sync",
@@ -123,6 +151,7 @@ def main(argv: list[str] | None = None) -> int:
     p_init.add_argument("destination", nargs="?")
     p_init.add_argument("--yes", action="store_true",
                         help="accept all defaults, no prompts")
+    _add_auto_push_flag(p_init)
 
     p_backup = sub.add_parser("backup", help="run one backup pass")
     p_backup.add_argument("--quiet", action="store_true")
@@ -131,9 +160,13 @@ def main(argv: list[str] | None = None) -> int:
     p_restore = sub.add_parser("restore", help="restore settings from a backup")
     p_restore.add_argument("source", nargs="?")
     p_restore.add_argument("--to", help="clone location for git URL sources")
+    _add_auto_push_flag(p_restore)
 
     sub.add_parser("status", help="show sync status")
     sub.add_parser("resolve", help="resolve a pending backup conflict")
+
+    p_config = sub.add_parser("config", help="show or change sync settings")
+    _add_auto_push_flag(p_config)
 
     p_hook = sub.add_parser("hook", help="manage the session-end hook")
     p_hook.add_argument("action", choices=["install", "uninstall"])
@@ -146,7 +179,7 @@ def main(argv: list[str] | None = None) -> int:
             prompts = InteractivePrompts() if not args.yes else _SilentPrompts()
             resolver = None if args.yes else interactive_resolver
             return run_init(paths, args.destination, args.yes, prompts,
-                            resolver=resolver)
+                            resolver=resolver, auto_push=args.auto_push)
         if args.command == "backup":
             return _cmd_backup(paths, args)
         if args.command == "restore":
@@ -154,6 +187,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "status":
             print(render_status(gather_status(paths)))
             return 0
+        if args.command == "config":
+            return _cmd_config(paths, args)
         if args.command == "resolve":
             args.quiet = False
             args.show_redactions = False
