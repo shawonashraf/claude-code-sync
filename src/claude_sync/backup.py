@@ -71,14 +71,15 @@ def run_backup(
                 return BackupResult(status="conflict-pending")
 
         sync_set = build_sync_set(paths.claude_dir)
-        changes = diff_dest(sync_set.files, dest)
+        executables = frozenset(sync_set.executables)
+        changes = diff_dest(sync_set.files, dest, executables)
         if changes.empty:
             cfg.conflict_pending = False
             save_config(paths, cfg)
             return BackupResult(status="unchanged", redacted=sync_set.redacted_env)
 
         timestamp = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
-        apply_changes(sync_set.files, dest, changes)
+        apply_changes(sync_set.files, dest, changes, executables)
         (dest / "claude-sync.meta.json").write_text(json.dumps({
             "schema": 1,
             "tool_version": __version__,

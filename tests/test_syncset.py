@@ -56,3 +56,10 @@ def test_runtime_dotfiles_in_mirror_dirs_are_skipped(fake_claude):
     ss = build_sync_set(fake_claude.claude_dir)
     assert not any(k.endswith(".state.json") or k.endswith(".sound.pid") for k in ss.files)
     assert "hooks/peon/run.sh" in ss.files  # non-dotfiles still mirrored
+
+
+def test_sync_set_records_executable_hooks(fake_claude):
+    hook = fake_claude.claude_dir / "hooks" / "peon" / "run.sh"
+    hook.chmod(0o755)
+    ss = build_sync_set(fake_claude.claude_dir)
+    assert ss.executables == {"hooks/peon/run.sh"}

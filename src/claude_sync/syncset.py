@@ -12,6 +12,7 @@ SINGLE_FILES = ("keybindings.json", "CLAUDE.md")
 @dataclass
 class SyncSet:
     files: dict[str, bytes] = field(default_factory=dict)
+    executables: set[str] = field(default_factory=set)
     redacted_env: list[str] = field(default_factory=list)
 
 
@@ -43,6 +44,8 @@ def build_sync_set(claude_dir: Path) -> SyncSet:
                 continue
             if entry.is_file():
                 ss.files[rel] = entry.read_bytes()
+                if entry.stat().st_mode & 0o111:
+                    ss.executables.add(rel)
 
     for name in SINGLE_FILES:
         f = claude_dir / name

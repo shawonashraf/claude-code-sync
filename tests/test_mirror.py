@@ -43,3 +43,18 @@ def test_git_and_meta_never_deleted(tmp_path):
     (tmp_path / "unmanaged-note.txt").write_text("keep me")
     changes = diff_dest(FILES, tmp_path)
     assert changes.deletes == []
+
+
+def test_executable_bit_is_mirrored_and_tracked(tmp_path):
+    files = {"hooks/h/run.sh": b"#!/bin/sh\n", "hooks/h/notes.md": b"n"}
+    execs = frozenset({"hooks/h/run.sh"})
+    apply_changes(files, tmp_path, diff_dest(files, tmp_path, execs), execs)
+    assert (tmp_path / "hooks" / "h" / "run.sh").stat().st_mode & 0o111
+    assert not (tmp_path / "hooks" / "h" / "notes.md").stat().st_mode & 0o111
+    assert diff_dest(files, tmp_path, execs).empty
+
+    # losing the exec bit locally is a change even when content is identical
+    changes = diff_dest(files, tmp_path, frozenset())
+    assert changes.writes == ["hooks/h/run.sh"]
+    apply_changes(files, tmp_path, changes, frozenset())
+    assert not (tmp_path / "hooks" / "h" / "run.sh").stat().st_mode & 0o111
