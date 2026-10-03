@@ -11,12 +11,13 @@ from claude_sync.lock import AlreadyRunning
 from claude_sync.paths import Paths
 from claude_sync.restore import RestoreError, run_restore
 from claude_sync.statuscmd import gather_status, render_status
+from claude_sync.variant import current_variant
 from claude_sync.wizard import run_init
 
 
 def build_paths() -> Paths:
     home = os.environ.get("CLAUDE_SYNC_HOME")
-    return Paths(home=Path(home) if home else Path.home())
+    return Paths(home=Path(home) if home else Path.home(), variant=current_variant())
 
 
 class InteractivePrompts:
@@ -104,6 +105,9 @@ def _cmd_restore(paths: Paths, args) -> int:
         print(f"claude-sync: {exc}", file=sys.stderr)
         return 1
     print(f"Restored {len(result.restored)} files.")
+    if result.missing_variant:
+        print(f"No {result.missing_variant} settings/hooks in the backup yet; "
+              "kept this machine's own. Run `claude-sync backup` to add them.")
     if result.safety_dir:
         print(f"Previous local files saved to {result.safety_dir}")
     for name, err in result.failed_plugins:

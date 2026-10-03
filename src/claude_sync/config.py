@@ -17,12 +17,12 @@ class SyncConfig:
 def load_config(paths: Paths) -> SyncConfig | None:
     if not paths.config_file.exists():
         return None
-    data = json.loads(paths.config_file.read_text())
+    data = json.loads(paths.config_file.read_text(encoding="utf-8"))
     known = {f.name for f in dataclasses.fields(SyncConfig)}
     return SyncConfig(**{k: v for k, v in data.items() if k in known})
 
 
 def save_config(paths: Paths, config: SyncConfig) -> None:
     paths.config_file.write_text(
-        json.dumps(dataclasses.asdict(config), indent=2) + "\n"
+        json.dumps(dataclasses.asdict(config), indent=2) + "\n", encoding="utf-8"
     )

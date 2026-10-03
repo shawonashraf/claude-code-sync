@@ -25,9 +25,9 @@ def gather_status(paths: Paths) -> StatusInfo:
     cfg = load_config(paths)
     if cfg is None:
         return StatusInfo(configured=False)
-    sync_set = build_sync_set(paths.claude_dir)
+    sync_set = build_sync_set(paths.claude_dir, paths.variant)
     changes = diff_dest(sync_set.files, Path(cfg.destination),
-                        frozenset(sync_set.executables))
+                        frozenset(sync_set.executables), paths.variant)
     return StatusInfo(
         configured=True,
         destination=cfg.destination,

@@ -1,20 +1,33 @@
 import json
+import re
 import shutil
 from pathlib import Path
 
 HOOK_SUBSTRING = "claude-sync backup --quiet"
+# on Windows shutil.which resolves to claude-sync.EXE, so match the marker loosely
+_HOOK_RE = re.compile(r"claude-sync(\.exe)?\"? backup --quiet", re.IGNORECASE)
+
+
+def is_hook_command(command: str) -> bool:
+    return bool(_HOOK_RE.search(command))
 
 
 def hook_command() -> str:
     exe = shutil.which("claude-sync")
     # PyPI package is claude-code-sync; --from keeps the marker substring intact
-    return f"{exe} backup --quiet" if exe else f"uvx --from claude-code-sync {HOOK_SUBSTRING}"
+    if exe:
+        # Claude Code runs hooks through bash, which eats backslashes
+        exe = Path(exe).as_posix()
+        if " " in exe:
+            exe = f'"{exe}"'
+        return f"{exe} backup --quiet"
+    return f"uvx --from claude-code-sync {HOOK_SUBSTRING}"
 
 
 def _load(settings_file: Path) -> dict:
     if not settings_file.exists():
         return {}
-    return json.loads(settings_file.read_text())
+    return json.loads(settings_file.read_text(encoding="utf-8"))
 
 
 def _entries(data: dict) -> list:
@@ -23,7 +36,7 @@ def _entries(data: dict) -> list:
 
 def _is_ours(entry: dict) -> bool:
     return any(
-        HOOK_SUBSTRING in h.get("command", "")
+        is_hook_command(h.get("command", ""))
         for h in entry.get("hooks", [])
     )
 

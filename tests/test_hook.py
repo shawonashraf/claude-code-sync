@@ -1,9 +1,9 @@
 import json
 
 from claude_sync.hook import (
-    HOOK_SUBSTRING,
     hook_command,
     install_hook,
+    is_hook_command,
     is_hook_installed,
     uninstall_hook,
 )
@@ -16,7 +16,7 @@ def _settings(tmp_path, content):
 
 
 def test_hook_command_contains_marker():
-    assert HOOK_SUBSTRING in hook_command()
+    assert is_hook_command(hook_command())
 
 
 def test_install_into_empty_settings(tmp_path):
@@ -25,7 +25,7 @@ def test_install_into_empty_settings(tmp_path):
     data = json.loads(f.read_text())
     entry = data["hooks"]["SessionEnd"][0]
     assert entry["hooks"][0]["type"] == "command"
-    assert HOOK_SUBSTRING in entry["hooks"][0]["command"]
+    assert is_hook_command(entry["hooks"][0]["command"])
     assert data["model"] == "opus"  # rest untouched
 
 

@@ -70,9 +70,9 @@ def run_backup(
             else:
                 return BackupResult(status="conflict-pending")
 
-        sync_set = build_sync_set(paths.claude_dir)
+        sync_set = build_sync_set(paths.claude_dir, paths.variant)
         executables = frozenset(sync_set.executables)
-        changes = diff_dest(sync_set.files, dest, executables)
+        changes = diff_dest(sync_set.files, dest, executables, paths.variant)
         if changes.empty:
             cfg.conflict_pending = False
             save_config(paths, cfg)
@@ -85,7 +85,7 @@ def run_backup(
             "tool_version": __version__,
             "last_sync": timestamp,
             "machine": machine,
-        }, indent=2) + "\n")
+        }, indent=2) + "\n", encoding="utf-8")
 
         committed = False
         git_mode = False

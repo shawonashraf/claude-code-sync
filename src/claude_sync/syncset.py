@@ -4,6 +4,7 @@ from pathlib import Path
 
 from claude_sync.manifest import build_manifest
 from claude_sync.redact import redact_settings
+from claude_sync.variant import repo_rel
 
 MIRROR_DIRS = ("skills", "hooks", "agents")
 SINGLE_FILES = ("keybindings.json", "CLAUDE.md")
@@ -23,7 +24,7 @@ def _is_cache_symlink(path: Path, claude_dir: Path) -> bool:
     return path.resolve().is_relative_to(cache)
 
 
-def build_sync_set(claude_dir: Path) -> SyncSet:
+def build_sync_set(claude_dir: Path, variant: str | None = None) -> SyncSet:
     ss = SyncSet()
     cache_symlinks: list[str] = []
 
@@ -32,13 +33,14 @@ def build_sync_set(claude_dir: Path) -> SyncSet:
         if not root.is_dir():
             continue
         for entry in sorted(root.rglob("*")):
-            rel = entry.relative_to(claude_dir).as_posix()
+            local = entry.relative_to(claude_dir).as_posix()
+            rel = repo_rel(local, variant)
             # dot-prefixed files/dirs inside mirrors are runtime state
             # (.state.json, .sound.pid), not configuration — never synced
             if any(part.startswith(".") for part in entry.relative_to(root).parts):
                 continue
             if _is_cache_symlink(entry, claude_dir):
-                cache_symlinks.append(rel)
+                cache_symlinks.append(local)
                 continue
             if any(_is_cache_symlink(p, claude_dir) for p in entry.parents):
                 continue
@@ -54,8 +56,9 @@ def build_sync_set(claude_dir: Path) -> SyncSet:
 
     settings_file = claude_dir / "settings.json"
     if settings_file.is_file():
-        redacted, names = redact_settings(json.loads(settings_file.read_text()))
-        ss.files["settings.json"] = (json.dumps(redacted, indent=2) + "\n").encode()
+        redacted, names = redact_settings(
+            json.loads(settings_file.read_text(encoding="utf-8")))
+        ss.files[repo_rel("settings.json", variant)] = (json.dumps(redacted, indent=2) + "\n").encode()
         ss.redacted_env = names
 
     manifest = build_manifest(claude_dir, cache_symlinks=cache_symlinks)
