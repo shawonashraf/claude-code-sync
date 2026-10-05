@@ -5,8 +5,6 @@ from pathlib import Path
 @dataclass(frozen=True)
 class Paths:
     home: Path
-    # repo subtree for OS-specific files (see variant.py); None = repo root
-    variant: str | None = None
 
     @property
     def claude_dir(self) -> Path:

@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from claude_sync.variant import managed_dirs, managed_files
+MANAGED_DIRS = ("skills", "hooks", "agents")
+MANAGED_FILES = ("settings.json", "keybindings.json", "CLAUDE.md", "plugins-manifest.json")
 
 
 @dataclass
@@ -14,15 +15,15 @@ class Changes:
         return not self.writes and not self.deletes
 
 
-def _existing_managed(dest: Path, variant: str | None) -> set[str]:
+def _existing_managed(dest: Path) -> set[str]:
     found: set[str] = set()
-    for dirname in managed_dirs(variant):
+    for dirname in MANAGED_DIRS:
         root = dest / dirname
         if root.is_dir():
             for f in root.rglob("*"):
                 if f.is_file():
                     found.add(f.relative_to(dest).as_posix())
-    for name in managed_files(variant):
+    for name in MANAGED_FILES:
         if (dest / name).is_file():
             found.add(name)
     return found
@@ -41,8 +42,7 @@ def _set_executable(path: Path, executable: bool) -> None:
 
 
 def diff_dest(
-    files: dict[str, bytes], dest: Path, executables: frozenset[str] = frozenset(),
-    variant: str | None = None,
+    files: dict[str, bytes], dest: Path, executables: frozenset[str] = frozenset()
 ) -> Changes:
     changes = Changes()
     for rel, content in sorted(files.items()):
@@ -51,7 +51,7 @@ def diff_dest(
                 or target.read_bytes() != content \
                 or _is_executable(target) != (rel in executables):
             changes.writes.append(rel)
-    changes.deletes = sorted(_existing_managed(dest, variant) - set(files))
+    changes.deletes = sorted(_existing_managed(dest) - set(files))
     return changes
 
 

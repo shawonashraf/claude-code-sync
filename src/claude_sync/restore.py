@@ -8,9 +8,9 @@ from pathlib import Path
 from claude_sync import gitutils
 from claude_sync.config import SyncConfig, load_config, save_config
 from claude_sync.manifest import marketplace_add_arg
+from claude_sync.mirror import MANAGED_DIRS, MANAGED_FILES
 from claude_sync.paths import Paths
 from claude_sync.redact import REDACTED
-from claude_sync.variant import local_rel, managed_dirs, managed_files
 
 
 class RestoreError(Exception):
@@ -23,19 +23,17 @@ class RestoreResult:
     failed_plugins: list[tuple[str, str]] = field(default_factory=list)
     redacted_env: list[str] = field(default_factory=list)
     safety_dir: Path | None = None
-    # the backup has no settings/hooks for this OS yet; local ones were kept
-    missing_variant: str | None = None
 
 
 def _is_url(source: str) -> bool:
     return source.startswith(("http://", "https://", "git@", "ssh://", "file://"))
 
 
-def _backup_files(src: Path, variant: str | None):
-    for name in managed_files(variant):
-        if not name.endswith("plugins-manifest.json") and (src / name).is_file():
+def _backup_files(src: Path):
+    for name in MANAGED_FILES:
+        if name != "plugins-manifest.json" and (src / name).is_file():
             yield name
-    for dirname in managed_dirs(variant):
+    for dirname in MANAGED_DIRS:
         root = src / dirname
         if root.is_dir():
             for f in sorted(root.rglob("*")):
@@ -73,12 +71,7 @@ def run_restore(
     result = RestoreResult()
     timestamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
 
-    files = list(_backup_files(src, paths.variant))
-    if paths.variant and not any(
-            f.startswith(f"{paths.variant}/") for f in files):
-        result.missing_variant = paths.variant
-    for repo_path in files:
-        rel = local_rel(repo_path, paths.variant)
+    for rel in _backup_files(src):
         local = paths.claude_dir / rel
         if local.is_file():
             if result.safety_dir is None:
@@ -87,10 +80,10 @@ def run_restore(
             saved.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(local, saved)
         local.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src / repo_path, local)
+        shutil.copy2(src / rel, local)
         result.restored.append(rel)
 
-    manifest = json.loads((src / "plugins-manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads((src / "plugins-manifest.json").read_text())
     claude = shutil.which("claude")
     for name, market in manifest.get("marketplaces", {}).items():
         arg = marketplace_add_arg(market.get("source", {}))
@@ -110,7 +103,7 @@ def run_restore(
 
     settings_file = paths.settings_file
     if settings_file.is_file():
-        env = json.loads(settings_file.read_text(encoding="utf-8")).get("env", {})
+        env = json.loads(settings_file.read_text()).get("env", {})
         result.redacted_env = sorted(k for k, v in env.items() if v == REDACTED)
 
     git_mode = gitutils.is_git_repo(src)

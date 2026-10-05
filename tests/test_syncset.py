@@ -1,7 +1,4 @@
 import json
-import sys
-
-import pytest
 
 from claude_sync.redact import REDACTED
 from claude_sync.syncset import build_sync_set
@@ -33,7 +30,6 @@ def test_settings_are_redacted_in_sync_set(fake_claude):
     assert ss.redacted_env == ["MY_API_KEY"]
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="symlinks need privileges on Windows")
 def test_cache_symlinks_skipped_and_recorded(fake_claude):
     cache_target = fake_claude.plugins_dir / "cache" / "mp" / "plug" / "skill-dir"
     cache_target.mkdir(parents=True)
@@ -62,7 +58,6 @@ def test_runtime_dotfiles_in_mirror_dirs_are_skipped(fake_claude):
     assert "hooks/peon/run.sh" in ss.files  # non-dotfiles still mirrored
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="no exec bits on Windows")
 def test_sync_set_records_executable_hooks(fake_claude):
     hook = fake_claude.claude_dir / "hooks" / "peon" / "run.sh"
     hook.chmod(0o755)

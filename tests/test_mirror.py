@@ -1,7 +1,3 @@
-import sys
-
-import pytest
-
 from claude_sync.mirror import Changes, apply_changes, diff_dest
 
 FILES = {
@@ -49,7 +45,6 @@ def test_git_and_meta_never_deleted(tmp_path):
     assert changes.deletes == []
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="no exec bits on Windows")
 def test_executable_bit_is_mirrored_and_tracked(tmp_path):
     files = {"hooks/h/run.sh": b"#!/bin/sh\n", "hooks/h/notes.md": b"n"}
     execs = frozenset({"hooks/h/run.sh"})

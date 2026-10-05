@@ -35,15 +35,6 @@ claude-backup/
 └── agents/
 ```
 
-!!! info "Each OS keeps its own settings.json and hooks/"
-    Those two hold absolute paths and shell scripts, so they only make sense
-    on the OS that wrote them. Linux uses the repo root (as above); Windows
-    and macOS use `windows/` and `macos/` subfolders holding their own
-    `settings.json` and `hooks/`. Skills, agents, `CLAUDE.md`, keybindings and
-    the plugin manifest stay shared. Each OS only ever writes — and deletes —
-    its own subtree. Restoring on an OS with no variant yet keeps that
-    machine's local settings/hooks; its first `claude-sync backup` creates them.
-
 !!! info "Plugins travel as a manifest, not as files"
     Installed plugins are recorded as `name@marketplace` plus the
     marketplace's source — like a lockfile. Restore reinstalls them through

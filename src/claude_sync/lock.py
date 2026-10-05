@@ -1,6 +1,5 @@
 import contextlib
 import os
-import sys
 import time
 from pathlib import Path
 
@@ -11,30 +10,9 @@ class AlreadyRunning(Exception):
     """Another claude-sync run holds the lock."""
 
 
-def _pid_alive_windows(pid: int) -> bool:
-    # os.kill(pid, 0) would TERMINATE the process on Windows, so ask the OS instead
-    import ctypes
-    from ctypes import wintypes
-
-    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-    kernel32.OpenProcess.restype = wintypes.HANDLE
-    handle = kernel32.OpenProcess(0x1000, False, pid)  # QUERY_LIMITED_INFORMATION
-    if not handle:
-        return ctypes.get_last_error() == 5  # access denied: exists, not ours
-    try:
-        code = wintypes.DWORD()
-        if not kernel32.GetExitCodeProcess(handle, ctypes.byref(code)):
-            return True
-        return code.value == 259  # STILL_ACTIVE
-    finally:
-        kernel32.CloseHandle(handle)
-
-
 def _pid_alive(pid: int) -> bool:
     if pid <= 0:
         return False
-    if sys.platform == "win32":
-        return _pid_alive_windows(pid)
     try:
         os.kill(pid, 0)
     except (ProcessLookupError, ValueError):
@@ -52,7 +30,7 @@ def sync_lock(lock_file: Path):
     except FileExistsError:
         # Lock exists, check if stale or held by live process
         try:
-            content = lock_file.read_text(encoding="utf-8").strip()
+            content = lock_file.read_text().strip()
             holder = int(content) if content else None
         except (ValueError, OSError):
             holder = None
