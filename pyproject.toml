@@ -1,6 +1,6 @@
 [project]
 name = "claude-code-sync"
-version = "0.1.1"
+version = "0.1.2"
 description = "Back up and restore your Claude Code configuration (skills, plugins, hooks, settings)"
 readme = "README.md"
 license = "MIT"
