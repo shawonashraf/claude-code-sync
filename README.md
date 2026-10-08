@@ -10,14 +10,25 @@ Docs: https://shawonashraf.github.io/claude-code-sync/
 
 Set up backups on the machine you already use:
 
-    uvx claude-code-sync init
+```bash
+uvx claude-code-sync init
+```
 
 Reproduce your setup on a new machine (one command):
 
-    uvx claude-code-sync restore https://github.com/you/claude-backup.git
+```bash
+uvx claude-code-sync restore https://github.com/you/claude-backup.git
+```
 
 The installed command is `claude-sync` (with `claude-code-sync` as an alias
 — the PyPI name).
+
+Or, you can use claude itself:
+
+```bash
+Clone the repo from https://github.com/shawonashraf/claude-code-sync which contains a sync tool for claude code and set it up on my computer. Ask questions about any choices you may have to make, such as directories, symlinks etc.
+```
+
 
 ## Commands
 
