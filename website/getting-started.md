@@ -33,6 +33,19 @@ If you prefer a persistent install, use `uv tool` or `pipx`:
     the auto-backup hook: the hook then calls a stable binary path instead
     of resolving the package on every session end.
 
+## Or let Claude Code set it up
+
+Prefer not to run the steps yourself? Paste this prompt into a Claude Code
+session and it will clone the project, install it, and walk you through
+`init`, asking you about each choice along the way:
+
+```text
+Clone the repo from https://github.com/shawonashraf/claude-code-sync which contains a sync tool for claude code and set it up on my computer. Ask questions about any choices you may have to make, such as directories, symlinks etc.
+```
+
+The rest of this page describes what it will ask, so you know what to
+answer.
+
 ## Set up your first backup
 
 Run init and answer its questions:
